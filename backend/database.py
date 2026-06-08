@@ -89,6 +89,15 @@ class QuizAttempt(Base):
     total_questions = Column(Integer)
     completed_at = Column(DateTime, default=datetime.utcnow)
 
+class Review(Base):
+    __tablename__ = "reviews"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    course_id = Column(Integer, ForeignKey("courses.id"))
+    rating = Column(Integer)
+    comment = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
 Base.metadata.create_all(bind=engine)
 
 def get_db():

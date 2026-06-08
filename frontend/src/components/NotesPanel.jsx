@@ -31,23 +31,23 @@ export default function NotesPanel({ lessonId, enrolled }) {
   if (!enrolled) return null
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <StickyNote className="w-5 h-5 text-gray-500" />
-          <h3 className="font-semibold text-gray-900">Your Notes</h3>
+          <StickyNote className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+          <h3 className="font-semibold text-gray-900 dark:text-white">Your Notes</h3>
         </div>
-        <button onClick={saveNote} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${saved ? 'bg-green-100 text-green-700' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'}`}>
+        <button onClick={saveNote} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${saved ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-blue-50 dark:bg-purple-900/30 text-blue-600 dark:text-purple-400 hover:bg-blue-100 dark:hover:bg-purple-900/50'}`}>
           <Save className="w-4 h-4" />
           {saved ? 'Saved!' : 'Save'}
         </button>
       </div>
-      {error && <div className="bg-red-50 text-red-600 p-2 rounded-lg text-sm mb-3">{error}</div>}
+      {error && <div className="bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 p-2 rounded-lg text-sm mb-3">{error}</div>}
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
         placeholder="Take notes on this lesson..."
-        className="w-full h-32 p-3 border border-gray-200 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm text-gray-700 placeholder-gray-400"
+        className="w-full h-32 p-3 border border-gray-200 dark:border-gray-700 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-purple-500 focus:border-transparent outline-none text-sm text-gray-700 dark:text-gray-300 dark:bg-gray-900 placeholder-gray-400 dark:placeholder-gray-500"
       />
     </div>
   )

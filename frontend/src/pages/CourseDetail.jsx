@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { PlayCircle, CheckCircle, User, Clock, Award, FileText, StickyNote, BookOpen } from 'lucide-react'
+import { PlayCircle, CheckCircle, User, Clock, Award, FileText, StickyNote, BookOpen, Star } from 'lucide-react'
 import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import QuizPanel from '../components/QuizPanel'
 import NotesPanel from '../components/NotesPanel'
+import ReviewSection from '../components/ReviewSection'
 
 export default function CourseDetail() {
   const { id } = useParams()
@@ -47,7 +48,8 @@ export default function CourseDetail() {
   }
 
   const openCertificate = () => {
-    window.open(`http://localhost:8000/certificate/${id}`, '_blank')
+    const base = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+    window.open(`${base}/certificate/${id}`, '_blank')
   }
 
   if (!course) return <div className="p-12 text-center">Loading...</div>
@@ -59,9 +61,9 @@ export default function CourseDetail() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
           <div className="mb-6">
-            <span className="text-blue-600 font-semibold text-sm uppercase tracking-wide">{course.category}</span>
-            <h1 className="text-3xl font-bold text-gray-900 mt-2 mb-4">{course.title}</h1>
-            <div className="flex items-center gap-4 text-sm text-gray-600">
+            <span className="text-blue-600 dark:text-purple-400 font-semibold text-sm uppercase tracking-wide">{course.category}</span>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mt-2 mb-4">{course.title}</h1>
+            <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
               <span className="flex items-center gap-1"><User className="w-4 h-4" /> {course.instructor}</span>
               <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> {course.duration}</span>
               <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-semibold">{course.level}</span>
@@ -77,37 +79,39 @@ export default function CourseDetail() {
                   <p className="text-sm text-gray-400 mt-1">Lesson {activeLesson + 1}: {lesson.title}</p>
                 </div>
               </div>
-              <div className="bg-white rounded-xl border border-gray-200 p-6 prose max-w-none" dangerouslySetInnerHTML={{__html: lesson.content}} />
+              <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{__html: lesson.content}} />
             </div>
           )}
 
           <div className="border-b border-gray-200 mb-6">
             <div className="flex gap-6">
-              {['content', 'notes', 'quiz'].map(t => (
-                <button key={t} onClick={() => setTab(t)} className={`pb-3 text-sm font-medium border-b-2 transition-colors ${tab === t ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+              {['content', 'notes', 'quiz', 'reviews'].map(t => (
+                <button key={t} onClick={() => setTab(t)} className={`pb-3 text-sm font-medium border-b-2 transition-colors ${tab === t ? 'border-blue-600 dark:border-purple-400 text-blue-600 dark:text-purple-400' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}`}>
                   {t === 'content' && 'About'}
                   {t === 'notes' && 'Notes'}
                   {t === 'quiz' && 'Quiz'}
+                  {t === 'reviews' && 'Reviews'}
                 </button>
               ))}
             </div>
           </div>
 
           {tab === 'content' && (
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h2 className="text-xl font-bold mb-4">About this Course</h2>
-              <div className="text-gray-600 leading-relaxed prose max-w-none" dangerouslySetInnerHTML={{__html: course.description}}></div>
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+              <h2 className="text-xl font-bold mb-4 dark:text-white">About this Course</h2>
+              <div className="text-gray-600 dark:text-gray-400 leading-relaxed prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{__html: course.description}}></div>
             </div>
           )}
           {tab === 'notes' && <NotesPanel lessonId={lesson?.id} enrolled={enrolled} />}
           {tab === 'quiz' && <QuizPanel courseId={id} />}
+          {tab === 'reviews' && <ReviewSection courseId={id} />}
         </div>
 
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-xl border border-gray-200 p-6 sticky top-24 space-y-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 sticky top-24 space-y-4">
             {!enrolled ? (
               <>
-                <div className="text-3xl font-bold text-gray-900 mb-2">Free</div>
+                <div className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Free</div>
                 <p className="text-gray-500 text-sm mb-6">Full lifetime access</p>
                 <button onClick={handleEnroll} className="w-full btn-primary mb-3">Enroll Now</button>
                 <p className="text-xs text-gray-500 text-center">30-Day Money-Back Guarantee</p>
@@ -116,8 +120,8 @@ export default function CourseDetail() {
               <>
                 <div className="mb-4">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="font-semibold text-gray-900">Your Progress</span>
-                    <span className="text-blue-600 font-bold">{progress.progress}%</span>
+                    <span className="font-semibold text-gray-900 dark:text-white">Your Progress</span>
+                    <span className="text-blue-600 dark:text-purple-400 font-bold">{progress.progress}%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2.5"><div className="bg-blue-600 h-2.5 rounded-full transition-all" style={{ width: `${progress.progress}%` }} /></div>
                   <p className="text-sm text-gray-500 mt-2">{progress.completed_lessons.length} of {course.lessons.length} lessons completed</p>
@@ -131,14 +135,14 @@ export default function CourseDetail() {
               </>
             )}
             <div>
-              <h3 className="font-semibold text-gray-900 mb-3">Course Content</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Course Content</h3>
               <div className="space-y-2">
                 {course.lessons.map((lesson, idx) => (
-                  <div key={lesson.id} className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${activeLesson === idx ? 'bg-blue-50 border border-blue-200' : 'hover:bg-gray-50 border border-transparent'}`} onClick={() => { setActiveLesson(idx); setTab('content') }}>
+                  <div key={lesson.id} className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${activeLesson === idx ? 'bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800' : 'hover:bg-gray-50 dark:hover:bg-gray-700/50 border border-transparent'}`} onClick={() => { setActiveLesson(idx); setTab('content') }}>
                     {enrolled && progress.completed_lessons.includes(lesson.id) ? <CheckCircle className="w-5 h-5 text-green-500 shrink-0" /> : <PlayCircle className="w-5 h-5 text-gray-400 shrink-0" />}
                     <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-medium truncate ${activeLesson === idx ? 'text-blue-700' : 'text-gray-700'}`}>{idx + 1}. {lesson.title}</p>
-                      <p className="text-xs text-gray-500">{lesson.duration}</p>
+                      <p className={`text-sm font-medium truncate ${activeLesson === idx ? 'text-blue-700 dark:text-purple-300' : 'text-gray-700 dark:text-gray-300'}`}>{idx + 1}. {lesson.title}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{lesson.duration}</p>
                     </div>
                     {enrolled && <button onClick={(e) => { e.stopPropagation(); toggleLesson(lesson.id); }} className="text-xs text-blue-600 hover:text-blue-700 font-medium shrink-0">{progress.completed_lessons.includes(lesson.id) ? 'Undo' : 'Done'}</button>}
                   </div>

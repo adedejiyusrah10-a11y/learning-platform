@@ -34,12 +34,12 @@ export default function QuizPanel({ courseId }) {
 
   if (!showQuiz) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
         <div className="flex items-center gap-3 mb-4">
           <Award className="w-6 h-6 text-yellow-500" />
-          <h3 className="font-semibold text-gray-900">Practice Quiz</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-white">Practice Quiz</h3>
         </div>
-        <p className="text-sm text-gray-500 mb-4">Test your knowledge with course quizzes.</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Test your knowledge with course quizzes.</p>
         <button onClick={loadQuizzes} className="btn-primary w-full">Start Quiz</button>
       </div>
     )
@@ -48,12 +48,12 @@ export default function QuizPanel({ courseId }) {
   if (result) {
     const passed = result.percentage >= 60
     return (
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
         <div className="text-center">
           {passed ? <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" /> : <XCircle className="w-12 h-12 text-red-500 mx-auto mb-3" />}
-          <h3 className="text-xl font-bold text-gray-900 mb-2">{passed ? 'Great job!' : 'Keep practicing!'}</h3>
-          <div className="text-4xl font-bold text-blue-600 mb-2">{result.percentage}%</div>
-          <p className="text-gray-500 mb-4">{result.score} of {result.total} correct</p>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{passed ? 'Great job!' : 'Keep practicing!'}</h3>
+          <div className="text-4xl font-bold text-blue-600 dark:text-purple-400 mb-2">{result.percentage}%</div>
+          <p className="text-gray-500 dark:text-gray-400 mb-4">{result.score} of {result.total} correct</p>
           <div className="flex gap-3">
             <button onClick={() => { setActiveQuiz(null); setResult(null); loadQuizzes() }} className="flex-1 btn-secondary">Try Again</button>
             <button onClick={() => setShowQuiz(false)} className="flex-1 btn-secondary">Close</button>
@@ -65,17 +65,17 @@ export default function QuizPanel({ courseId }) {
 
   if (activeQuiz) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="font-semibold text-gray-900 mb-4">{activeQuiz.title}</h3>
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+        <h3 className="font-semibold text-gray-900 dark:text-white mb-4">{activeQuiz.title}</h3>
         <div className="space-y-6">
           {activeQuiz.questions.map((q, qi) => (
             <div key={q.id}>
-              <p className="font-medium text-gray-900 mb-3">{qi + 1}. {q.question}</p>
+              <p className="font-medium text-gray-900 dark:text-white mb-3">{qi + 1}. {q.question}</p>
               <div className="space-y-2">
                 {JSON.parse(q.options).map((opt, oi) => (
-                  <label key={oi} className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${answers[q.id] === oi ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'}`}>
-                    <input type="radio" name={`q-${q.id}`} checked={answers[q.id] === oi} onChange={() => setAnswers({...answers, [q.id]: oi})} className="w-4 h-4 text-blue-600" />
-                    <span className="text-sm text-gray-700">{opt}</span>
+                  <label key={oi} className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${answers[q.id] === oi ? 'border-blue-500 dark:border-purple-500 bg-blue-50 dark:bg-purple-900/30' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50'}`}>
+                    <input type="radio" name={`q-${q.id}`} checked={answers[q.id] === oi} onChange={() => setAnswers({...answers, [q.id]: oi})} className="w-4 h-4 text-blue-600 dark:text-purple-400" />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{opt}</span>
                   </label>
                 ))}
               </div>
@@ -88,13 +88,13 @@ export default function QuizPanel({ courseId }) {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6">
-      <h3 className="font-semibold text-gray-900 mb-4">Course Quizzes</h3>
+    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+      <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Course Quizzes</h3>
       <div className="space-y-3">
         {quizzes.map(quiz => (
-          <button key={quiz.id} onClick={() => startQuiz(quiz)} className="w-full text-left p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors">
-            <p className="font-medium text-gray-900">{quiz.title}</p>
-            <p className="text-sm text-gray-500">{quiz.questions?.length || 0} questions</p>
+          <button key={quiz.id} onClick={() => startQuiz(quiz)} className="w-full text-left p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-purple-500 hover:bg-blue-50 dark:hover:bg-purple-900/30 transition-colors">
+            <p className="font-medium text-gray-900 dark:text-white">{quiz.title}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{quiz.questions?.length || 0} questions</p>
           </button>
         ))}
       </div>

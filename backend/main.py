@@ -7,7 +7,7 @@ from typing import List, Optional
 from datetime import timedelta, datetime
 import os
 
-from database import get_db, User, Course, Lesson, Enrollment, Quiz, QuizQuestion, QuizAttempt, Note
+from database import get_db, User, Course, Lesson, Enrollment, Quiz, QuizQuestion, QuizAttempt, Note, Review
 from auth import authenticate_user, create_access_token, get_current_user, get_password_hash, ACCESS_TOKEN_EXPIRE_MINUTES
 
 app = FastAPI(title="Lumora API")
@@ -145,6 +145,19 @@ def update_progress(course_id: int, progress: ProgressUpdate, current_user: User
 def get_me(current_user: User = Depends(get_current_user)):
     return {"id": current_user.id, "email": current_user.email, "full_name": current_user.full_name, "is_instructor": current_user.is_instructor}
 
+@app.put("/me")
+def update_me(data: UserUpdate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    current_user.full_name = data.full_name
+    if data.email != current_user.email:
+        existing = db.query(User).filter(User.email == data.email).first()
+        if existing:
+            raise HTTPException(status_code=400, detail="Email already taken")
+        current_user.email = data.email
+    if data.password:
+        current_user.hashed_password = get_password_hash(data.password)
+    db.commit()
+    return {"id": current_user.id, "email": current_user.email, "full_name": current_user.full_name, "is_instructor": current_user.is_instructor}
+
 @app.get("/notes/{lesson_id}")
 def get_notes(lesson_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     note = db.query(Note).filter(Note.lesson_id == lesson_id, Note.user_id == current_user.id).first()
@@ -163,6 +176,45 @@ def save_note(lesson_id: int, data: NoteCreate, current_user: User = Depends(get
     db.commit()
     db.refresh(note)
     return note
+
+class ReviewCreate(BaseModel):
+    rating: int
+    comment: str = ""
+
+class UserUpdate(BaseModel):
+    email: str
+    full_name: str
+    password: str = ""
+
+class CourseCreate(BaseModel):
+    title: str
+    description: str
+    category: str
+    image_url: Optional[str] = ""
+    duration: str
+    level: str
+    lessons: List[dict] = []
+
+@app.get("/courses/{course_id}/reviews")
+def get_reviews(course_id: int, db: Session = Depends(get_db)):
+    reviews = db.query(Review).filter(Review.course_id == course_id).all()
+    result = []
+    for r in reviews:
+        user = db.query(User).filter(User.id == r.user_id).first()
+        result.append({"id": r.id, "user_name": user.full_name if user else "Unknown", "rating": r.rating, "comment": r.comment, "created_at": r.created_at})
+    return result
+
+@app.post("/courses/{course_id}/reviews")
+def create_review(course_id: int, data: ReviewCreate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    existing = db.query(Review).filter(Review.user_id == current_user.id, Review.course_id == course_id).first()
+    if existing:
+        existing.rating = data.rating
+        existing.comment = data.comment
+    else:
+        review = Review(user_id=current_user.id, course_id=course_id, rating=data.rating, comment=data.comment)
+        db.add(review)
+    db.commit()
+    return {"message": "Review saved"}
 
 @app.get("/certificate/{course_id}")
 def get_certificate(course_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -231,6 +283,73 @@ def submit_quiz(quiz_id: int, answers: list[int], current_user: User = Depends(g
 def get_my_scores(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     attempts = db.query(QuizAttempt).filter(QuizAttempt.user_id == current_user.id).all()
     return attempts
+@app.get("/instructor/courses")
+def get_instructor_courses(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if not current_user.is_instructor:
+        raise HTTPException(status_code=403, detail="Instructor access required")
+    courses = db.query(Course).options(joinedload(Course.lessons), joinedload(Course.quizzes).joinedload(Quiz.questions)).filter(Course.instructor == current_user.full_name).all()
+    return courses
+
+@app.post("/instructor/courses")
+def create_instructor_course(data: CourseCreate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if not current_user.is_instructor:
+        raise HTTPException(status_code=403, detail="Instructor access required")
+    course = Course(title=data.title, description=data.description, instructor=current_user.full_name, category=data.category, image_url=data.image_url or "", duration=data.duration, level=data.level)
+    db.add(course)
+    db.flush()
+    for i, lesson_data in enumerate(data.lessons):
+        lesson = Lesson(course_id=course.id, title=lesson_data.get("title", ""), duration=lesson_data.get("duration", "30 min"), order=i+1, content=lesson_data.get("content", ""), video_url=lesson_data.get("video_url", ""))
+        db.add(lesson)
+    db.commit()
+    return course
+
+@app.put("/instructor/courses/{course_id}")
+def update_instructor_course(course_id: int, data: CourseCreate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if not current_user.is_instructor:
+        raise HTTPException(status_code=403, detail="Instructor access required")
+    course = db.query(Course).filter(Course.id == course_id, Course.instructor == current_user.full_name).first()
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    course.title = data.title
+    course.description = data.description
+    course.category = data.category
+    course.image_url = data.image_url or ""
+    course.duration = data.duration
+    course.level = data.level
+    db.commit()
+    return course
+
+@app.delete("/instructor/courses/{course_id}")
+def delete_instructor_course(course_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if not current_user.is_instructor:
+        raise HTTPException(status_code=403, detail="Instructor access required")
+    course = db.query(Course).filter(Course.id == course_id, Course.instructor == current_user.full_name).first()
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    db.delete(course)
+    db.commit()
+    return {"message": "Course deleted"}
+
+@app.get("/admin/users")
+def admin_get_users(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if not current_user.is_instructor:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    users = db.query(User).all()
+    return [{"id": u.id, "email": u.email, "full_name": u.full_name, "is_instructor": u.is_instructor} for u in users]
+
+@app.put("/admin/users/{user_id}")
+def admin_update_user(user_id: int, data: UserCreate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if not current_user.is_instructor:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.full_name = data.full_name
+    if data.password:
+        user.hashed_password = get_password_hash(data.password)
+    db.commit()
+    return {"message": "User updated"}
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))

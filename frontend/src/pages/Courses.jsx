@@ -25,7 +25,7 @@ export default function Courses() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="mb-10">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">All Courses</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">All Courses</h1>
         <div className="flex flex-col md:flex-row gap-4">
           <form onSubmit={handleSearch} className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
