@@ -10,7 +10,7 @@ import os
 from database import get_db, User, Course, Lesson, Enrollment, Quiz, QuizQuestion, QuizAttempt, Note
 from auth import authenticate_user, create_access_token, get_current_user, get_password_hash, ACCESS_TOKEN_EXPIRE_MINUTES
 
-app = FastAPI(title="Learning Platform API")
+app = FastAPI(title="Lumora API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -184,7 +184,7 @@ def get_certificate(course_id: int, current_user: User = Depends(get_current_use
 </style></head><body>
 <div class="cert">
   <h1>Certificate of Completion</h1>
-  <h2>Lumina Learning</h2>
+  <h2>Lumora</h2>
   <div class="seal">&#10003;</div>
   <p style="font-size:18px;color:#6b7280;">This certifies that</p>
   <div class="name">{current_user.full_name}</div>

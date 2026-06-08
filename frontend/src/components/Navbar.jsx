@@ -14,7 +14,7 @@ export default function Navbar() {
           <div className="flex items-center">
             <Link to="/" className="flex items-center gap-2">
               <div className="bg-blue-600 p-1.5 rounded-lg"><BookOpen className="w-6 h-6 text-white" /></div>
-              <span className="text-xl font-bold text-gray-900">Lumina</span>
+              <span className="text-xl font-bold text-gray-900">Lumora</span>
             </Link>
           </div>
           <div className="hidden md:flex items-center gap-6">
